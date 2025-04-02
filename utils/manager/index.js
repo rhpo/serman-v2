@@ -55,25 +55,33 @@ async function update_service(app) {
     await run(`systemctl --user stop ${app.name} 2>/dev/null`);
 
     // delete old service file if it exists and then make_service
-    if (fs.existsSync(`/home/${USERNAME}/${app.name}.service`)) {
-        fs.unlinkSync(`/home/${USERNAME}/${app.name}.service`);
+    if (fs.existsSync(`/home/${USERNAME}/.config/systemd/user/${app.name}.service`)) {
+        fs.unlinkSync(`/home/${USERNAME}/.config/systemd/user/${app.name}.service`);
     }
 
     await run('systemctl --user daemon-reload');
 
-
     await make_service(app);
 }
 
-async function update_nginx(apps) {
+async function update_nginx(apps, askChmod = false) {
     const nginxPath = '/etc/nginx/nginx.conf';
     const localNginxPath = path.resolve(__dirname, '../../../nginx.conf');
     let serverBlocks = apps.map(app => serverBlock(app)).join('\n');
 
+    if (askChmod) {
+        try {
+            fs.accessSync(nginxPath, fs.constants.W_OK);
+        } catch (error) {
+            console.error(`Permission denied. Run: sudo chown $USER:$USER ${nginxPath}`);
+            process.exit(1);
+        }
+    }
+
     try {
         // first, if it doesn't even exist, create it
         if (!fs.existsSync(nginxPath)) {
-            await run(`touch ${nginxPath}`, true);
+            await run(`touch ${nginxPath}`, !askChmod)
         }
 
         let config = fs.readFileSync(nginxPath, 'utf8');
@@ -108,12 +116,12 @@ http {\n    ${startMarker}\n    ${serverBlocks}\n    ${endMarker}\n}`;
             }
         }
 
-        run(`cp ${nginxPath} ${nginxPath}.bak`, true);
+        run(`cp ${nginxPath} ${nginxPath}.bak`, !askChmod);
         fs.writeFileSync(localNginxPath, config);
-        await run(`cp ${localNginxPath} ${nginxPath}`, true); // true means sudo
+        await run(`cp ${localNginxPath} ${nginxPath}`, !askChmod); // true means sudo
 
         // restart nginx
-        await run('systemctl restart nginx', true);
+        await run('systemctl restart nginx', !askChmod)
 
         console.log('Nginx configuration updated successfully.');
     } catch (err) {
