@@ -8,22 +8,23 @@ const { program } = require('commander');
 
 const Application = require('./utils/app');
 
-const { Manager, update_nginx } = require('./utils/manager');
+const { Manager } = require('./utils/manager');
 const { script } = require('./utils/strings.js');
 const run = require('./utils/run.js');
 
-const USERNAME = os.userInfo().username;
+const USERNAME = process.env.SUDO_USER || os.userInfo().username;
 const manager = new Manager();
 
 const prompt = (message) => promptpure(colors.green(message));
 
-if (process.getuid && process.getuid() === 0) {
-    console.log('Serman needs to be ran as normal user.');
-    process.exit(1);
-}
-
 function nameToDomainID(name) {
     return name.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase();
+}
+
+// check if root
+if (!process.getuid || process.getuid() !== 0) {
+    console.log('Serman needs to be ran as root!');
+    process.exit(1);
 }
 
 async function init(name) {
@@ -217,7 +218,7 @@ async function showlog(name) {
     }
 
     try {
-        const output = await run(`systemctl --user --no-pager status ${name}`);
+        const output = await run(`sudo systemctl --no-pager status ${name}`);
         console.log(output);
     } catch (error) {
         console.log(colors.red(`Failed to fetch logs for ${name}:`));
@@ -234,6 +235,7 @@ program
 program
     .command('init <name>')
     .alias('create')
+    .alias('add')
     .description('Add a new app')
     .action(init);
 

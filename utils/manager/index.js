@@ -7,7 +7,7 @@ const App = require('../app/index.js');
 const run = require('../run.js');
 const { serverBlock } = require('../strings.js');
 
-const USERNAME = os.userInfo().username;
+// const USERNAME = os.userInfo().username;
 
 /**
  * The application class.
@@ -29,7 +29,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=${workingDirectory}
-ExecStart=/bin/bash ${app.start}
+ExecStart=/usr/bin/sudo /bin/bash ${app.start}
 Restart=always
 
 [Install]
@@ -37,35 +37,31 @@ WantedBy=multi-user.target
 `;
 
         try {
-            fs.writeFileSync(`/home/${USERNAME}/.config/systemd/user/${app.name}.service`, service);
+            fs.writeFileSync(`/etc/systemd/system/${app.name}.service`, service);
         } catch (error) {
             throw new Error(`Failed to create service file for ${app.name}.\n${error}`);
         }
 
-        await run('systemctl --user daemon-reload');
-        let message = await run(`systemctl --user start ${app.name}`);
-        await run(`systemctl --user enable ${app.name}`);
+        await run('sudo systemctl daemon-reload');
+        let message = await run(`sudo systemctl start ${app.name}`);
+        await run(`sudo systemctl enable ${app.name}`);
 
         resolve(message);
     });
 }
 
 async function update_service(app) {
-    // stop the service if it is running
-    await run(`systemctl --user stop ${app.name} 2>/dev/null`);
 
     // delete old service file if it exists and then make_service
-    if (fs.existsSync(`/home/${USERNAME}/.config/systemd/user/${app.name}.service`)) {
-        fs.unlinkSync(`/home/${USERNAME}/.config/systemd/user/${app.name}.service`);
+    if (fs.existsSync(`/etc/systemd/system/${app.name}.service`)) {
+        fs.unlinkSync(`/etc/systemd/system/${app.name}.service`);
     }
-
-    await run('systemctl --user daemon-reload');
 
     await make_service(app);
 }
 
 async function update_nginx(apps, askChmod = false) {
-    const nginxPath = `/home/${USERNAME}/nginx/conf/nginx.conf`;
+    const nginxPath = `/etc/nginx/nginx.conf`;
     const localNginxPath = path.resolve(__dirname, '../../../nginx.conf');
     let serverBlocks = apps.map(app => serverBlock(app)).join('\n');
 
@@ -121,9 +117,9 @@ http {\n    ${startMarker}\n    ${serverBlocks}\n    ${endMarker}\n}`;
 
         // restart nginx
         if (askChmod) {
-            await run('systemctl --user restart nginx');
+            await run('sudo systemctl restart nginx');
         } else {
-            await run('systemctl --user restart nginx', !askChmod);
+            await run('sudo systemctl restart nginx', !askChmod);
         }
 
         console.log('Nginx configuration updated successfully.');
@@ -166,7 +162,7 @@ class Manager {
         if (this.apps.find(a => a.name === app.name)) return true;
 
         // if app.service exists in /home/${USERNAME}
-        if (fs.existsSync(`/home/${USERNAME}/.config/systemd/user/${app.name}.service`)) return true;
+        if (fs.existsSync(`/etc/systemd/system/${app.name}.service`)) return true;
 
         // else it does not exist
         return false;
@@ -225,7 +221,7 @@ class Manager {
             app.port = +port;
 
             await this.update(apps => apps.map(a => a.name === app.name ? app : a), true);
-            update_service(app); // update the service and relaunch app.
+            // update_service(app); // update the service and relaunch app.
 
         } catch (error) {
             throw new Error(`Failed to point ${app.name} to port ${port}.\n${error}`);
@@ -246,20 +242,20 @@ class Manager {
         try {
             // Stop and disable the service
             try {
-                await run(`systemctl --user stop ${app.name}`);
+                await run(`sudo systemctl stop ${app.name}`);
             } catch { }
 
             try {
-                await run(`systemctl --user disable ${app.name}`);
+                await run(`sudo systemctl disable ${app.name}`);
             } catch { }
 
             // Remove the service file
-            const servicePath = `/home/${USERNAME}/.config/systemd/user/${app.name}.service`;
+            const servicePath = `/etc/systemd/system/${app.name}.service`;
             if (fs.existsSync(servicePath)) {
                 fs.unlinkSync(servicePath);
             }
 
-            await run('systemctl --user daemon-reload');
+            await run('sudo systemctl daemon-reload');
 
             // Remove the app from the configuration
             await this.update(apps => apps.filter(a => a.name !== app.name));
@@ -279,9 +275,8 @@ class Manager {
         }
 
         try {
-            await run('systemctl --user daemon-reload');
-            let message = await run(`systemctl --user start ${app.name}`);
-            await run(`systemctl --user enable ${app.name}`);
+            let message = await run(`sudo systemctl start ${app.name}`);
+            await run(`sudo systemctl enable ${app.name}`);
             return message;
         } catch (error) {
             throw new Error(`Failed to start service for ${app.name}.\n${error}`);
@@ -300,20 +295,24 @@ class Manager {
         }
 
         try {
-            await run('systemctl --user daemon-reload');
-
 
             // Stop the service
-            await run(`systemctl --user stop ${app.name}`);
+            await run(`sudo systemctl stop ${app.name}`);
 
             // Disable the service from boot
-            await run(`systemctl --user disable ${app.name}`);
+            await run(`sudo systemctl disable ${app.name}`);
 
-            await run('systemctl --user daemon-reload');
+            await run('sudo systemctl daemon-reload');
 
             // Set the port to 0
-            app.port = 0;
-            await this.update(apps => apps.map(a => a.name === app.name ? app : a));
+            await this.update(apps => {
+                return apps.map(a => {
+                    if (a.name === app.name) {
+                        a.port = 0;
+                    }
+                    return a;
+                });
+            });
         } catch (error) {
             throw new Error(`Failed to stop service for ${app.name}.\n${error}`);
         }
@@ -330,8 +329,8 @@ class Manager {
         }
 
         try {
-            await run('systemctl --user daemon-reload');
-            let message = await run(`systemctl --user restart ${app.name}`);
+            await run('sudo systemctl daemon-reload');
+            let message = await run(`sudo systemctl restart ${app.name}`);
             return message;
         } catch (error) {
             throw new Error(`Failed to restart service for ${app.name}.\n${error}`);

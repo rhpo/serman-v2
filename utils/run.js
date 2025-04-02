@@ -1,6 +1,13 @@
 const { spawn } = require('child_process');
 
 module.exports = function run(command, useSudo, options = {}) {
+
+    if (command.startsWith('sudo')) {
+        useSudo = true;
+        command = command.substring(4).trim();
+        return run(command, useSudo, options);
+    }
+
     return new Promise((resolve, reject) => {
         if (useSudo) {
             command = ["sudo", ...command.split(' ')]; // Convert to an array properly
