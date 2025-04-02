@@ -143,6 +143,30 @@ function stop(name) {
     manager.stop(name);
 }
 
+function start(name) {
+    console.log(`Starting ${name}...`);
+
+    let app = new Application(name);
+    if (!manager.exists(app)) {
+        console.error(colors.red(`App ${name} does not exist.`));
+        process.exit(1);
+    }
+
+    manager.start(name);
+}
+
+function restart(name) {
+    console.log(`Restarting ${name}...`);
+
+    let app = new Application(name);
+    if (!manager.exists(app)) {
+        console.error(colors.red(`App ${name} does not exist.`));
+        process.exit(1);
+    }
+
+    manager.restart(name);
+}
+
 function set(name, key, value) {
     let app = new Application(name);
 
@@ -217,6 +241,16 @@ program
     .command('stop <name>')
     .description('Stops an app and disables from starting on boot')
     .action(stop);
+
+program
+    .command('start <name>')
+    .description('Starts an app and disables from starting on boot')
+    .action(start);
+
+program
+    .command('restart <name>')
+    .description('Restarts an app and disables from starting on boot')
+    .action(restart);
 
 program
     .command('change <name> <key> <value>')

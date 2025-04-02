@@ -257,6 +257,26 @@ class Manager {
     }
 
     /**
+     * Starts the service for the specified app if it exists.
+     * @param {App} app
+     * @returns
+     */
+    async start(app) {
+        if (!this.exists(app)) {
+            throw new Error(`App with name ${app.name} does not exist in the configuration or as a service.`);
+        }
+
+        try {
+            await run('systemctl --user daemon-reload');
+            let message = await run(`systemctl --user start ${app.name}`);
+            await run(`systemctl --user enable ${app.name}`);
+            return message;
+        } catch (error) {
+            throw new Error(`Failed to start service for ${app.name}.\n${error}`);
+        }
+    }
+
+    /**
      * Stops the service for the specified app and sets its port to 0.
      * Also removes the app from boot using systemctl command.
      * @param {App} app
@@ -274,11 +294,32 @@ class Manager {
             // Disable the service from boot
             await run(`systemctl --user disable ${app.name}`);
 
+            await run('systemctl --user daemon-reload');
+
             // Set the port to 0
             app.port = 0;
             await this.update(apps => apps.map(a => a.name === app.name ? app : a));
         } catch (error) {
             throw new Error(`Failed to stop service for ${app.name}.\n${error}`);
+        }
+    }
+
+    /**
+     * Restarts the service for the specified app if it exists.
+     * @param {App} app
+     * @returns
+     */
+    async restart(app) {
+        if (!this.exists(app)) {
+            throw new Error(`App with name ${app.name} does not exist in the configuration or as a service.`);
+        }
+
+        try {
+            await run('systemctl --user daemon-reload');
+            let message = await run(`systemctl --user restart ${app.name}`);
+            return message;
+        } catch (error) {
+            throw new Error(`Failed to restart service for ${app.name}.\n${error}`);
         }
     }
 
