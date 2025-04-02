@@ -116,7 +116,6 @@ http {\n    ${startMarker}\n    ${serverBlocks}\n    ${endMarker}\n}`;
             }
         }
 
-        run(`cp ${nginxPath} ${nginxPath}.bak`, !askChmod);
         fs.writeFileSync(localNginxPath, config);
         await run(`cp ${localNginxPath} ${nginxPath}`, !askChmod); // true means sudo
 
