@@ -1,0 +1,12 @@
+[
+  {
+    "name": "myapp",
+    "description": "Hllo myapp!",
+    "start": "/home/ramy/servers/myapp/start.sh",
+    "port": 57687,
+    "domains": [
+      "*.myapp.com"
+    ],
+    "config": ""
+  }
+]

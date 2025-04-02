@@ -1,0 +1,26 @@
+{
+  "name": "serman",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "serman": "./index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "^22.13.17"
+  },
+  "dependencies": {
+    "colors": "^1.4.0",
+    "commander": "^13.1.0",
+    "prompt-sync": "^4.2.0",
+    "sudo": "^1.0.3",
+    "sudo-js": "^1.0.2",
+    "sudo-prompt": "^9.2.1"
+  }
+}
