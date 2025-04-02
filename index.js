@@ -18,7 +18,7 @@ const manager = new Manager();
 const prompt = (message) => promptpure(colors.green(message));
 
 if (process.getuid && process.getuid() === 0) {
-    console.error('Serman needs to be ran as normal user.');
+    console.log('Serman needs to be ran as normal user.');
     process.exit(1);
 }
 
@@ -30,7 +30,7 @@ async function init(name) {
     const app = new Application(name, '', 'npm start', 0, ['localhost']);
 
     if (manager.exists(app)) {
-        console.error('App already exists, please choose another name.');
+        console.log('App already exists, please choose another name.');
         process.exit(1);
     }
 
@@ -83,7 +83,7 @@ async function init(name) {
         fs.mkdirSync(appDir, { recursive: true });
         console.log(`Directory (${appDir}) created successfully.`);
     } catch (error) {
-        console.error('Failed to create directory for app:', error.message);
+        console.log('Failed to create directory for app:', error.message);
         process.exit(1);
     }
 
@@ -93,7 +93,7 @@ async function init(name) {
         fs.mkdirSync(serverDir, { recursive: true });
         console.log(`Directory (${serverDir}) created successfully.`);
     } catch (error) {
-        console.error('Failed to create directory for app:', error.message);
+        console.log('Failed to create directory for app:', error.message);
         process.exit(1);
     }
 
@@ -119,7 +119,7 @@ function remove(name) {
 
     let app = new Application(name);
     if (!manager.exists(app)) {
-        console.error(colors.red(`App ${name} does not exist.`));
+        console.log(colors.red(`App ${name} does not exist.`));
         process.exit(1);
     }
 
@@ -136,7 +136,7 @@ function stop(name) {
 
     let app = new Application(name);
     if (!manager.exists(app)) {
-        console.error(colors.red(`App ${name} does not exist.`));
+        console.log(colors.red(`App ${name} does not exist.`));
         process.exit(1);
     }
 
@@ -148,7 +148,7 @@ function start(name) {
 
     let app = new Application(name);
     if (!manager.exists(app)) {
-        console.error(colors.red(`App ${name} does not exist.`));
+        console.log(colors.red(`App ${name} does not exist.`));
         process.exit(1);
     }
 
@@ -160,7 +160,7 @@ function restart(name) {
 
     let app = new Application(name);
     if (!manager.exists(app)) {
-        console.error(colors.red(`App ${name} does not exist.`));
+        console.log(colors.red(`App ${name} does not exist.`));
         process.exit(1);
     }
 
@@ -172,12 +172,12 @@ function set(name, key, value) {
 
     let possibleKeys = Reflect.ownKeys(app);
     if (!possibleKeys.includes(key)) {
-        console.error(colors.red(`Key ${key} doesn't exist.`));
+        console.log(colors.red(`Key ${key} doesn't exist.`));
         process.exit(1);
     }
 
     if (!manager.exists(app)) {
-        console.error(colors.red(`App ${name} does not exist.`));
+        console.log(colors.red(`App ${name} does not exist.`));
         process.exit(1);
     }
 
@@ -190,7 +190,7 @@ function change_domain(name) {
 
     let app = new Application(name);
     if (!manager.exists(app)) {
-        console.error(colors.red(`App ${name} does not exist.`));
+        console.log(colors.red(`App ${name} does not exist.`));
         process.exit(1);
     }
 
@@ -199,7 +199,7 @@ function change_domain(name) {
     ).split(' ');
 
     if (newDomains.length === 0 || newDomains.some(domain => domain.trim() === '')) {
-        console.error(colors.red('Invalid domains provided.'));
+        console.log(colors.red('Invalid domains provided.'));
         process.exit(1);
     }
 
@@ -212,7 +212,7 @@ async function showlog(name) {
 
     let app = new Application(name);
     if (!manager.exists(app)) {
-        console.error(colors.red(`App ${name} does not exist.`));
+        console.log(colors.red(`App ${name} does not exist.`));
         process.exit(1);
     }
 
@@ -220,8 +220,8 @@ async function showlog(name) {
         const output = await run(`systemctl --user --no-pager status ${name}`);
         console.log(output);
     } catch (error) {
-        console.error(colors.red(`Failed to fetch logs for ${name}:`));
-        console.error(error.message);
+        console.log(colors.red(`Failed to fetch logs for ${name}:`));
+        console.log(error.message);
         process.exit(1);
     }
 }

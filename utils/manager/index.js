@@ -73,7 +73,7 @@ async function update_nginx(apps, askChmod = false) {
         try {
             fs.accessSync(nginxPath, fs.constants.W_OK);
         } catch (error) {
-            console.error(`Permission denied. Run: sudo chown $USER:$USER ${nginxPath}`);
+            console.log(`Permission denied. Run: sudo chown $USER:$USER ${nginxPath}`);
             process.exit(1);
         }
     }
@@ -100,7 +100,7 @@ async function update_nginx(apps, askChmod = false) {
                 const newHttpBlock = httpBlock.replace(/}$/, `    ${startMarker}\n    ${serverBlocks}\n    ${endMarker}\n}`);
                 config = config.replace(httpBlock, newHttpBlock);
             } else {
-                console.error('Error: No http {} block found in nginx.conf.');
+                console.log('Error: No http {} block found in nginx.conf.');
 
                 // make our http block and try again
                 config = `user www-data;
@@ -120,14 +120,25 @@ http {\n    ${startMarker}\n    ${serverBlocks}\n    ${endMarker}\n}`;
         await run(`cp ${localNginxPath} ${nginxPath}`, !askChmod); // true means sudo
 
         // restart nginx
-        await run('systemctl restart nginx', !askChmod)
+        if (askChmod) {
+            try {
+                await run('/bin/systemctl restart nginx');
+
+            } catch {
+                console.log(`Permission denied. Please add this line to your sudoers file: \n${USERNAME} ALL=(ALL) NOPASSWD: /bin/systemctl restart nginx`);
+                process.exit(1);
+            }
+        }
+        else {
+            await run('/bin/systemctl restart nginx', !askChmod)
+        }
 
         console.log('Nginx configuration updated successfully.');
     } catch (err) {
         if (err.code === 'EACCES') {
-            console.error(`Permission denied. Run: sudo chown $USER:$USER ${nginxPath}`);
+            console.log(`Permission denied. Run: sudo chown $USER:$USER ${nginxPath}`);
         } else {
-            console.error('Error updating nginx configuration:', err);
+            console.log('Error updating nginx configuration:', err);
         }
     }
 }
@@ -375,8 +386,8 @@ class Manager {
         try {
             fs.writeFileSync(this.path, JSON.stringify(this.apps, null, 2));
         } catch (error) {
-            console.error(`Failed to save the configuration to ${this.path} `);
-            console.error(error);
+            console.log(`Failed to save the configuration to ${this.path} `);
+            console.log(error);
         }
 
         this.refresh();
