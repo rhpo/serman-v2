@@ -28,8 +28,6 @@ After=network.target
 
 [Service]
 Type=simple
-User=${USERNAME}
-Group=${USERNAME}
 WorkingDirectory=${workingDirectory}
 ExecStart=/bin/bash ${app.start}
 Restart=always
@@ -60,6 +58,9 @@ async function update_service(app) {
     if (fs.existsSync(`/home/${USERNAME}/${app.name}.service`)) {
         fs.unlinkSync(`/home/${USERNAME}/${app.name}.service`);
     }
+
+    await run('systemctl --user daemon-reload');
+
 
     await make_service(app);
 }
@@ -288,6 +289,9 @@ class Manager {
         }
 
         try {
+            await run('systemctl --user daemon-reload');
+
+
             // Stop the service
             await run(`systemctl --user stop ${app.name}`);
 
