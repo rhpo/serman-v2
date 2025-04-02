@@ -221,7 +221,7 @@ class Manager {
             // change the port
             app.port = +port;
 
-            await this.update(apps => apps.map(a => a.name === app.name ? app : a));
+            await this.update(apps => apps.map(a => a.name === app.name ? app : a), true);
             update_service(app); // update the service and relaunch app.
 
         } catch (error) {
@@ -360,11 +360,11 @@ class Manager {
      * @param {(apps: App[]) => App[]} fn
      * @returns
      */
-    async update(fn) {
+    async update(fn, askChmod = false) {
         this.apps = fn(this.apps);
         this.save();
 
-        update_nginx(fn(this.apps));
+        update_nginx(fn(this.apps), askChmod);
 
     }
 
