@@ -65,7 +65,7 @@ async function update_service(app) {
 }
 
 async function update_nginx(apps, askChmod = false) {
-    const nginxPath = '/etc/nginx/nginx.conf';
+    const nginxPath = `/home/${USERNAME}/nginx/conf/nginx.conf`;
     const localNginxPath = path.resolve(__dirname, '../../../nginx.conf');
     let serverBlocks = apps.map(app => serverBlock(app)).join('\n');
 
@@ -121,16 +121,16 @@ http {\n    ${startMarker}\n    ${serverBlocks}\n    ${endMarker}\n}`;
 
         // restart nginx
         if (askChmod) {
-            fs.access('/bin/systemctl', fs.constants.X_OK, async (err) => {
+            fs.access('systemctl --user', fs.constants.X_OK, async (err) => {
                 if (err) {
-                    console.log(`Permission denied. Please add this line to your sudoers file: \n${USERNAME} ALL=(ALL) NOPASSWD: /bin/systemctl restart nginx`);
+                    console.log(`Permission denied.\nPlease add this line to your sudoers file: \n${USERNAME} ALL=(ALL) NOPASSWD: systemctl --user restart nginx`);
                     process.exit(1);
                 } else {
-                    await run('/bin/systemctl restart nginx');
+                    await run('systemctl --user restart nginx');
                 }
             });
         } else {
-            await run('/bin/systemctl restart nginx', !askChmod);
+            await run('systemctl --user restart nginx', !askChmod);
         }
 
         console.log('Nginx configuration updated successfully.');

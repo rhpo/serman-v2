@@ -8,5 +8,15 @@
       "*.myapp.com"
     ],
     "config": ""
+  },
+  {
+    "name": "hello",
+    "description": "deqfdeqfeqfqe",
+    "start": "/home/ramy/servers/hello/start.sh",
+    "port": 5000,
+    "domains": [
+      "hello.hello.com"
+    ],
+    "config": ""
   }
 ]
