@@ -1,13 +1,1 @@
-[
-  {
-    "name": "ping",
-    "description": "My app description",
-    "start": "/home/ramy/servers/ping/start.sh",
-    "port": 51261,
-    "domains": [
-      "ping.com",
-      "*.ping.com"
-    ],
-    "config": ""
-  }
-]
+[]

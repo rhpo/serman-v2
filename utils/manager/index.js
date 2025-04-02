@@ -220,7 +220,15 @@ class Manager {
             // change the port
             app.port = +port;
 
-            await this.update(apps => apps.map(a => a.name === app.name ? app : a), true);
+            await this.update(apps => {
+                return apps.map(a => {
+                    if (a.name === app.name) {
+                        a.port = +port;
+                    }
+                    return a;
+                });
+            }, true
+            );
             // update_service(app); // update the service and relaunch app.
 
         } catch (error) {
@@ -350,7 +358,14 @@ class Manager {
             app[key] = value;
 
             // Apply the changes
-            await this.update(apps => apps.map(a => a.name === app.name ? app : a));
+            await this.update(apps => {
+                return apps.map(a => {
+                    if (a.name === app.name) {
+                        a[key] = value;
+                    }
+                    return a;
+                });
+            });
             update_service(app); // Update the service to reflect changes
         } catch (error) {
             throw new Error(`Failed to change property ${key} for ${app.name}.\n${error}`);
