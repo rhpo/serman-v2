@@ -140,7 +140,7 @@ function stop(name) {
         process.exit(1);
     }
 
-    manager.stop(name);
+    manager.stop(app);
 }
 
 function start(name) {
@@ -152,7 +152,7 @@ function start(name) {
         process.exit(1);
     }
 
-    manager.start(name);
+    manager.start(app);
 }
 
 function restart(name) {
@@ -164,7 +164,7 @@ function restart(name) {
         process.exit(1);
     }
 
-    manager.restart(name);
+    manager.restart(app);
 }
 
 function set(name, key, value) {
