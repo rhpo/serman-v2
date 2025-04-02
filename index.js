@@ -193,7 +193,7 @@ async function showlog(name) {
     }
 
     try {
-        const output = await run(`systemctl --no-pager status ${name}`);
+        const output = await run(`systemctl --user --no-pager status ${name}`);
         console.log(output);
     } catch (error) {
         console.error(colors.red(`Failed to fetch logs for ${name}:`));
