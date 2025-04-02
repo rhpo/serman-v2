@@ -6,8 +6,9 @@ function serverBlock(app) {
 
     return `
     # App: ${app.name} (${app.description})
-    ${app.config ? app.config : ''}
     server {
+        ${app.config ? app.config : ''}
+
         listen 80;
         server_name ${app.domains.join(' ')};
 
