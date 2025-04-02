@@ -121,14 +121,7 @@ http {\n    ${startMarker}\n    ${serverBlocks}\n    ${endMarker}\n}`;
 
         // restart nginx
         if (askChmod) {
-            fs.access('systemctl --user', fs.constants.X_OK, async (err) => {
-                if (err) {
-                    console.log(`Permission denied.\nPlease add this line to your sudoers file: \n${USERNAME} ALL=(ALL) NOPASSWD: systemctl --user restart nginx`);
-                    process.exit(1);
-                } else {
-                    await run('systemctl --user restart nginx');
-                }
-            });
+            await run('systemctl --user restart nginx');
         } else {
             await run('systemctl --user restart nginx', !askChmod);
         }
